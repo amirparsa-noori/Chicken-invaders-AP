@@ -28,6 +28,9 @@ public class Plane {
     public int getLives() { return lives; }
     public void setLives(int lives) { this.lives = lives; }
 
+    public int getX() { return x; }
+    public int getY() { return y; }
+
     public void update() {
         if (moveLeft && x > 0) x -= speed;
         if (moveRight && x < 800 - 40) x += speed;
