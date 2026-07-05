@@ -10,6 +10,14 @@ import java.sql.Statement;
 public class DatabaseManager {
     private static final String DB_URL = "jdbc:sqlite:game.db";
 
+    static {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void initializeDatabase() {
         try {
             Connection conn = DriverManager.getConnection(DB_URL);
@@ -22,6 +30,7 @@ public class DatabaseManager {
             stmt.execute(sql);
             stmt.close();
             conn.close();
+            System.out.println("Database initialized successfully.");
         } catch (Exception e) {
             e.printStackTrace();
         }
