@@ -1,5 +1,8 @@
 package game.main;
 
+import game.db.DatabaseManager;
+import game.model.User;
+import game.ui.LoginPanel;
 import game.ui.MainMenuPanel;
 import javax.swing.*;
 import java.awt.*;
@@ -7,6 +10,7 @@ import java.awt.*;
 public class GameMain extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
+    private User currentUser;
 
     public GameMain() {
         setTitle("Chicken Invaders");
@@ -17,6 +21,7 @@ public class GameMain extends JFrame {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
         mainPanel.add(new MainMenuPanel(this), "MainMenu");
+        mainPanel.add(new LoginPanel(this), "Login");
         add(mainPanel);
         cardLayout.show(mainPanel, "MainMenu");
     }
@@ -25,7 +30,16 @@ public class GameMain extends JFrame {
         cardLayout.show(mainPanel, panelName);
     }
 
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
+    public User getCurrentUser() {
+        return currentUser;
+    }
+
     public static void main(String[] args) {
+        DatabaseManager.initializeDatabase();
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
