@@ -43,7 +43,11 @@ public class MainMenuPanel extends JPanel {
         if (action.equals("Exit")) {
             System.exit(0);
         } else if (action.equals("New Game")) {
-            gameMain.showPanel("Login");
+            if (gameMain.getCurrentUser() == null) {
+                gameMain.showPanel("Login");
+            } else {
+                gameMain.showPanel("Game");
+            }
         }
     }
 }

@@ -54,7 +54,7 @@ public class LoginPanel extends JPanel {
                 User loggedIn = DatabaseManager.loginUser(user, pass);
                 if (loggedIn != null) {
                     gameMain.setCurrentUser(loggedIn);
-                    gameMain.showPanel("MainMenu");
+                    gameMain.showPanel("Game");
                 } else {
                     JOptionPane.showMessageDialog(LoginPanel.this, "Invalid credentials!");
                 }
