@@ -1,4 +1,6 @@
-package game.model;
+package game.model.entity;
+
+import game.util.AssetManager;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -39,11 +41,11 @@ public class Plane {
     }
 
     public void draw(Graphics g) {
-        g.setColor(Color.CYAN);
-        g.fillPolygon(
-                new int[]{x + 20, x, x + 40},
-                new int[]{y, y + 40, y + 40},
-                3
-        );
+        if (AssetManager.defaultPlane != null) {
+            g.drawImage(AssetManager.defaultPlane, x, y, 50, 50, null);
+        } else {
+            g.setColor(Color.CYAN);
+            g.fillPolygon(new int[]{x + 25, x, x + 50}, new int[]{y, y + 50, y + 50}, 3);
+        }
     }
 }

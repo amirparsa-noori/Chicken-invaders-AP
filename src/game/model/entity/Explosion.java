@@ -1,6 +1,7 @@
-package game.model;
+package game.model.entity;
 
-import java.awt.Color;
+import game.util.AssetManager;
+
 import java.awt.Graphics;
 
 public class Explosion {
@@ -23,10 +24,9 @@ public class Explosion {
     }
 
     public void draw(Graphics g) {
-        g.setColor(Color.ORANGE);
-        int size = 30 + (15 - lifeTimer) * 2;
-        int drawX = x - (15 - lifeTimer);
-        int drawY = y - (15 - lifeTimer);
-        g.fillOval(drawX, drawY, size, size);
+        if (AssetManager.explosion != null) {
+            // کمی سایز رو بزرگ می‌کنیم که جذاب بشه اگر بد شد درستش کن !!
+            g.drawImage(AssetManager.explosion, x - 10, y - 10, 50, 50, null);
+        }
     }
 }

@@ -1,4 +1,6 @@
-package game.model;
+package game.model.entity;
+
+import game.util.AssetManager;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -22,7 +24,11 @@ public class Bullet {
     public int getY() { return y; }
 
     public void draw(Graphics g) {
-        g.setColor(Color.YELLOW);
-        g.fillRect(x, y, 4, 15);
+        if (AssetManager.bullet != null) {
+            g.drawImage(AssetManager.bullet, x, y - 10, 15, 30, null);
+        } else {
+            g.setColor(Color.YELLOW);
+            g.fillRect(x, y, 4, 15);
+        }
     }
 }

@@ -1,12 +1,14 @@
 package game.ui;
 
 import game.main.GameMain;
-import game.model.Bullet;
-import game.model.Egg;
-import game.model.Enemy;
-import game.model.Explosion;
-import game.model.NormalEnemy;
-import game.model.Plane;
+import game.model.enemy.Enemy;
+import game.model.enemy.NormalEnemy;
+import game.model.entity.Bullet;
+import game.model.entity.Egg;
+import game.model.entity.Explosion;
+import game.model.entity.Plane;
+import game.util.AssetManager;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -95,6 +97,12 @@ public class GamePanel extends JPanel implements ActionListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        // رسم بک‌گراند
+        if (AssetManager.background != null) {
+            g.drawImage(AssetManager.background, 0, 0, 800, 600, null);
+        }
+
         plane.draw(g);
         for (Enemy enemy : enemies) enemy.draw(g);
         for (Bullet bullet : bullets) bullet.draw(g);

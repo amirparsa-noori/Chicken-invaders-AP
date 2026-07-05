@@ -1,4 +1,6 @@
-package game.model;
+package game.model.entity;
+
+import game.util.AssetManager;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -22,7 +24,11 @@ public class Egg {
     public int getY() { return y; }
 
     public void draw(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.fillOval(x, y, 8, 12);
+        if (AssetManager.egg != null) {
+            g.drawImage(AssetManager.egg, x - 8, y, 20, 25, null);
+        } else {
+            g.setColor(Color.WHITE);
+            g.fillOval(x, y, 8, 12);
+        }
     }
 }
