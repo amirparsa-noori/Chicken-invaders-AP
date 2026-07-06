@@ -29,6 +29,7 @@ public class Bullet {
         } else {
             g.setColor(Color.YELLOW);
             g.fillRect(x, y, 4, 15);
+            // بعضی اوقات اَسِت ها لود نمیشه برای همین من اینو اضافه کردم که اگر لود نشد یه شکل باشه که خالی نباشه !!
         }
     }
 }

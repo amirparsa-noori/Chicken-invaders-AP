@@ -17,6 +17,7 @@ public class ZigzagEnemy extends Enemy {
         } else {
             g.setColor(Color.MAGENTA);
             g.fillOval(x, y, 30, 30);
+            // بعضی اوقات اَسِت ها لود نمیشه برای همین من اینو اضافه کردم که اگر لود نشد یه شکل باشه که خالی نباشه !!
         }
     }
 }

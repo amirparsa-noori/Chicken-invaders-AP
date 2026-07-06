@@ -14,6 +14,8 @@ public class AssetManager {
     public static Image zigzagChicken;
     public static Image shooterChicken;
     public static Image egg;
+    public static Image boss1;
+    public static Image boss2;
 
     static {
         try {
@@ -28,6 +30,8 @@ public class AssetManager {
             zigzagChicken = ImageIO.read(new File("assets/chicken/zigzag_chicken.png"));
             shooterChicken = ImageIO.read(new File("assets/chicken/shooter_chicken.png"));
             egg = ImageIO.read(new File("assets/chicken/egg.png"));
+            boss1 = ImageIO.read(new File("assets/chicken/boss1.png"));
+            boss2 = ImageIO.read(new File("assets/chicken/boss2.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }

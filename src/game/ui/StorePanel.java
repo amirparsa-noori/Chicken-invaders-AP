@@ -2,6 +2,7 @@ package game.ui;
 
 import game.db.DatabaseManager;
 import game.main.GameMain;
+import game.util.AssetManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -39,9 +40,18 @@ public class StorePanel extends JPanel {
             JPanel card = new JPanel(new BorderLayout());
             card.setBackground(Color.DARK_GRAY);
 
-            JLabel nameLabel = new JLabel(names[i] + " (Cost: " + costs[i] + ")", SwingConstants.CENTER);
+            // لود کردن عکس هواپیما برای فروشگاه
+            ImageIcon icon = null;
+            if (AssetManager.planes[i] != null) {
+                Image img = AssetManager.planes[i].getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+                icon = new ImageIcon(img);
+            }
+
+            JLabel nameLabel = new JLabel(names[i] + " (Cost: " + costs[i] + ")", icon, SwingConstants.CENTER);
             nameLabel.setForeground(Color.WHITE);
-            card.add(nameLabel, BorderLayout.NORTH);
+            nameLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
+            nameLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+            card.add(nameLabel, BorderLayout.CENTER);
 
             int planeId = i + 1;
             JButton btn = new JButton();
@@ -49,6 +59,7 @@ public class StorePanel extends JPanel {
                 if (gameMain.getCurrentUser().getActivePlane() == planeId) {
                     btn.setText("Equipped");
                     btn.setEnabled(false);
+                    btn.setBackground(Color.GREEN);
                 } else {
                     btn.setText("Select");
                     btn.addActionListener(new ActionListener() {
@@ -56,13 +67,14 @@ public class StorePanel extends JPanel {
                         public void actionPerformed(ActionEvent e) {
                             gameMain.getCurrentUser().setActivePlane(planeId);
                             DatabaseManager.updateActivePlane(gameMain.getCurrentUser().getUsername(), planeId);
-                            updateStore();
+                            updateStore(); // رفرش صفحه
                         }
                     });
                 }
             } else {
                 btn.setText("Locked");
                 btn.setEnabled(false);
+                btn.setBackground(Color.RED);
             }
             card.add(btn, BorderLayout.SOUTH);
             itemsPanel.add(card);

@@ -22,11 +22,16 @@ public class GamePanel extends JPanel implements ActionListener {
     private ArrayList<Bullet> bullets;
     private ArrayList<Egg> eggs;
     private ArrayList<Explosion> explosions;
-    private int enemyDirection = 1;
-    private int enemySpeed = 1;
+
+    // متغیرهای مدیریت مراحل
     private int level = 1;
     private int score = 0;
     private long lastShotTime = 0;
+
+    private double enemySpeed = 1;
+    private int enemyDirection = 1;
+    private int enemyDownStep = 20;
+    private double eggProbability = 0.002;
 
     public GamePanel(GameMain gameMain) {
         this.gameMain = gameMain;
@@ -79,26 +84,60 @@ public class GamePanel extends JPanel implements ActionListener {
             activeType = gameMain.getCurrentUser().getActivePlane();
         }
         plane = new Plane(375, 500, activeType);
+        score = 0;
+        level = 1;
+        loadLevel(level);
+        isPaused = false;
+        timer.start();
+        requestFocusInWindow();
+    }
+
+    private void loadLevel(int lvl) {
         enemies.clear();
         bullets.clear();
         eggs.clear();
         explosions.clear();
-        score = 0;
         enemyDirection = 1;
+
+        if (lvl == 4) {
+            enemies.add(new BossLevel4(340, 50));
+            return;
+        } else if (lvl == 8) {
+            enemies.add(new BossLevel8(320, 50));
+            return;
+        }
+
+        // تنظیم سختی بازی بر اساس جدول مراحل
+        int hpBase = (lvl >= 5) ? 3 : 2;
+        if (lvl == 1) { enemySpeed = 1.0; enemyDownStep = 20; eggProbability = 0.002; }
+        else if (lvl == 2) { enemySpeed = 1.5; enemyDownStep = 20; eggProbability = 0.003; }
+        else if (lvl == 3) { enemySpeed = 2.0; enemyDownStep = 25; eggProbability = 0.004; }
+        else if (lvl == 5) { enemySpeed = 2.5; enemyDownStep = 25; eggProbability = 0.006; }
+        else if (lvl == 6) { enemySpeed = 3.0; enemyDownStep = 30; eggProbability = 0.008; }
+        else if (lvl == 7) { enemySpeed = 3.5; enemyDownStep = 30; eggProbability = 0.010; }
 
         for (int row = 0; row < 5; row++) {
             for (int col = 0; col < 8; col++) {
                 int startX = 100 + col * 50;
                 int startY = 50 + row * 40;
-                if (row == 0) enemies.add(new ShooterEnemy(startX, startY));
-                else if (row == 1) enemies.add(new ZigzagEnemy(startX, startY));
-                else if (row == 2) enemies.add(new FastEnemy(startX, startY));
-                else enemies.add(new NormalEnemy(startX, startY));
+                Enemy e;
+
+                if (lvl == 1) e = new NormalEnemy(startX, startY);
+                else if (lvl == 2) e = (row % 2 == 0) ? new NormalEnemy(startX, startY) : new FastEnemy(startX, startY);
+                else if (lvl == 3) e = (row % 2 == 0) ? new NormalEnemy(startX, startY) : new ZigzagEnemy(startX, startY);
+                else if (lvl == 5) e = (row % 2 == 0) ? new ShooterEnemy(startX, startY) : new FastEnemy(startX, startY);
+                else if (lvl == 6) e = (row % 2 == 0) ? new ZigzagEnemy(startX, startY) : new ShooterEnemy(startX, startY);
+                else {
+                    if (row == 0) e = new ShooterEnemy(startX, startY);
+                    else if (row == 1) e = new ZigzagEnemy(startX, startY);
+                    else if (row == 2) e = new FastEnemy(startX, startY);
+                    else e = new NormalEnemy(startX, startY);
+                }
+
+                e.setHp(hpBase);
+                enemies.add(e);
             }
         }
-        isPaused = false;
-        timer.start();
-        requestFocusInWindow();
     }
 
     @Override
@@ -135,26 +174,35 @@ public class GamePanel extends JPanel implements ActionListener {
             if (plane != null) plane.update();
             updateEntities();
             checkCollisions();
+            checkLevelProgress();
         }
         repaint();
     }
 
     private void updateEntities() {
         boolean hitEdge = false;
+
         for (Enemy enemy : enemies) {
-            enemy.setX(enemy.getX() + (enemySpeed * enemyDirection));
-            if (enemy.getX() <= 0 || enemy.getX() >= 800 - 40) {
-                hitEdge = true;
-            }
-            if (Math.random() < 0.002) {
-                eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30));
+            if (enemy instanceof Boss) {
+                ((Boss) enemy).updateBoss(eggs);
+            } else {
+                enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
+                if (enemy.getX() <= 0 || enemy.getX() >= 800 - 40) hitEdge = true;
+
+                if (Math.random() < eggProbability) {
+                    // تخم مرغ مستقیم رو به پایین
+                    eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, 0, 4));
+                }
             }
         }
+
         if (hitEdge) {
             enemyDirection *= -1;
             for (Enemy enemy : enemies) {
-                enemy.setY(enemy.getY() + 20);
-                enemy.setX(enemy.getX() + (enemySpeed * enemyDirection));
+                if (!(enemy instanceof Boss)) {
+                    enemy.setY(enemy.getY() + enemyDownStep);
+                    enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
+                }
             }
         }
 
@@ -167,7 +215,9 @@ public class GamePanel extends JPanel implements ActionListener {
         for (int i = eggs.size() - 1; i >= 0; i--) {
             Egg egg = eggs.get(i);
             egg.update();
-            if (egg.getY() > 600) eggs.remove(i);
+            if (egg.getY() > 600 || egg.getY() < 0 || egg.getX() < 0 || egg.getX() > 800) {
+                eggs.remove(i);
+            }
         }
 
         for (int i = explosions.size() - 1; i >= 0; i--) {
@@ -181,19 +231,27 @@ public class GamePanel extends JPanel implements ActionListener {
         if (plane == null) return;
         Rectangle planeRect = new Rectangle(plane.getX(), plane.getY(), 50, 50);
 
+        // برخورد تیر به دشمن
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             Rectangle bRect = new Rectangle(b.getX(), b.getY(), 10, 25);
             boolean hit = false;
+
             for (int j = enemies.size() - 1; j >= 0; j--) {
                 Enemy enemy = enemies.get(j);
-                Rectangle eRect = new Rectangle(enemy.getX(), enemy.getY(), 40, 40);
-                if (bRect.intersects(eRect)) {
-                    enemy.takeDamage(1);
+                if (bRect.intersects(enemy.getBounds())) {
+
+                    // محاسبه دمیج (اسنایپر دمیج دوبرابر به غول می‌زند)
+                    int damage = 1;
+                    if (enemy instanceof Boss && plane.getType() == 4) {
+                        damage = 2;
+                    }
+
+                    enemy.takeDamage(damage);
                     if (enemy.getHp() <= 0) {
                         explosions.add(new Explosion(enemy.getX(), enemy.getY()));
                         enemies.remove(j);
-                        score += 10;
+                        score += (enemy instanceof Boss) ? 0 : 10; // امتیاز غول جداگانه داده میشود
                     }
                     hit = true;
                     break;
@@ -202,6 +260,7 @@ public class GamePanel extends JPanel implements ActionListener {
             if (hit) bullets.remove(i);
         }
 
+        // برخورد تخم مرغ به هواپیما
         for (int i = eggs.size() - 1; i >= 0; i--) {
             Egg egg = eggs.get(i);
             Rectangle eggRect = new Rectangle(egg.getX(), egg.getY(), 20, 25);
@@ -211,13 +270,30 @@ public class GamePanel extends JPanel implements ActionListener {
                 plane.setLives(plane.getLives() - 1);
                 if (plane.getLives() <= 0) {
                     timer.stop();
-                    handleGameOver();
+                    handleGameOver("Game Over!");
                 }
             }
         }
     }
 
-    private void handleGameOver() {
+    private void checkLevelProgress() {
+        if (enemies.isEmpty()) {
+            if (level == 4) score += 500;
+            else if (level == 8) {
+                score += 1000;
+                timer.stop();
+                handleGameOver("You Win! Victory!");
+                return;
+            } else {
+                score += 200;
+            }
+
+            level++;
+            loadLevel(level);
+        }
+    }
+
+    private void handleGameOver(String msg) {
         if (gameMain.getCurrentUser() != null) {
             int oldHigh = gameMain.getCurrentUser().getHighestScore();
             if (score > oldHigh) {
@@ -225,7 +301,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 DatabaseManager.updateScore(gameMain.getCurrentUser().getUsername(), score);
             }
         }
-        JOptionPane.showMessageDialog(this, "Game Over! Score: " + score);
+        JOptionPane.showMessageDialog(this, msg + "\nFinal Score: " + score);
         gameMain.showPanel("MainMenu");
     }
 }
