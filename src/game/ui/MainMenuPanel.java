@@ -22,7 +22,7 @@ public class MainMenuPanel extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
         gbc.gridy = 0;
         add(titleLabel, gbc);
-        String[] buttons = {"New Game", "High Scores", "Settings", "How to Play", "Exit"};
+        String[] buttons = {"New Game", "Store", "High Scores", "Settings", "How to Play", "Exit"};
         int y = 1;
         for (int i = 0; i < buttons.length; i++) {
             JButton btn = new JButton(buttons[i]);
@@ -47,6 +47,12 @@ public class MainMenuPanel extends JPanel {
                 gameMain.showPanel("Login");
             } else {
                 gameMain.showPanel("Game");
+            }
+        } else if (action.equals("Store")) {
+            if (gameMain.getCurrentUser() == null) {
+                gameMain.showPanel("Login");
+            } else {
+                gameMain.showPanel("Store");
             }
         }
     }

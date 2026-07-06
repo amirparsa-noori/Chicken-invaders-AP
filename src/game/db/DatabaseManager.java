@@ -18,11 +18,11 @@ public class DatabaseManager {
                     "username TEXT PRIMARY KEY, " +
                     "password TEXT NOT NULL, " +
                     "highest_score INTEGER DEFAULT 0, " +
-                    "last_level INTEGER DEFAULT 1)";
+                    "last_level INTEGER DEFAULT 1, " +
+                    "active_plane INTEGER DEFAULT 1)";
             stmt.execute(sql);
             stmt.close();
             conn.close();
-            System.out.println("Database initialized successfully.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,7 +67,8 @@ public class DatabaseManager {
                 User user = new User(
                         rs.getString("username"),
                         rs.getInt("highest_score"),
-                        rs.getInt("last_level")
+                        rs.getInt("last_level"),
+                        rs.getInt("active_plane")
                 );
                 rs.close();
                 pstmt.close();
@@ -79,5 +80,35 @@ public class DatabaseManager {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void updateScore(String username, int newScore) {
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL);
+            String sql = "UPDATE users SET highest_score = ? WHERE username = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, newScore);
+            pstmt.setString(2, username);
+            pstmt.executeUpdate();
+            pstmt.close();
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void updateActivePlane(String username, int planeId) {
+        try {
+            Connection conn = DriverManager.getConnection(DB_URL);
+            String sql = "UPDATE users SET active_plane = ? WHERE username = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, planeId);
+            pstmt.setString(2, username);
+            pstmt.executeUpdate();
+            pstmt.close();
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
