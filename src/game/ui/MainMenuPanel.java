@@ -54,6 +54,8 @@ public class MainMenuPanel extends JPanel {
             } else {
                 gameMain.showPanel("Store");
             }
+        } else if (action.equals("How to Play")) {
+            gameMain.showPanel("HowToPlay");
         }
     }
 }

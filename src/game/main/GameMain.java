@@ -6,8 +6,10 @@ import game.ui.GamePanel;
 import game.ui.LoginPanel;
 import game.ui.MainMenuPanel;
 import game.ui.StorePanel;
+import game.ui.HowToPlayPanel;
 import javax.swing.*;
 import java.awt.*;
+
 
 public class GameMain extends JFrame {
     private CardLayout cardLayout;
@@ -32,6 +34,7 @@ public class GameMain extends JFrame {
         mainPanel.add(storePanel, "Store");
         add(mainPanel);
         cardLayout.show(mainPanel, "MainMenu");
+        mainPanel.add(new HowToPlayPanel(this), "HowToPlay");
     }
 
     public void showPanel(String panelName) {

@@ -22,11 +22,12 @@ public class GamePanel extends JPanel implements ActionListener {
     private ArrayList<Bullet> bullets;
     private ArrayList<Egg> eggs;
     private ArrayList<Explosion> explosions;
+    private ArrayList<PowerUp> powerUps;
 
-    // متغیرهای مدیریت مراحل
     private int level = 1;
     private int score = 0;
     private long lastShotTime = 0;
+    private long freezeEndTime = 0;
 
     private double enemySpeed = 1;
     private int enemyDirection = 1;
@@ -41,6 +42,7 @@ public class GamePanel extends JPanel implements ActionListener {
         bullets = new ArrayList<>();
         eggs = new ArrayList<>();
         explosions = new ArrayList<>();
+        powerUps = new ArrayList<>();
         isPaused = false;
 
         addKeyListener(new KeyAdapter() {
@@ -60,7 +62,14 @@ public class GamePanel extends JPanel implements ActionListener {
                 if (key == KeyEvent.VK_SPACE && !isPaused) {
                     long currentTime = System.currentTimeMillis();
                     if (currentTime - lastShotTime >= plane.getFireRate()) {
-                        bullets.add(new Bullet(plane.getX() + 25, plane.getY()));
+                        int bc = plane.getBulletCount();
+                        int px = plane.getX();
+                        int py = plane.getY();
+                        if(bc == 1) bullets.add(new Bullet(px + 25, py));
+                        else if(bc == 2) { bullets.add(new Bullet(px + 15, py)); bullets.add(new Bullet(px + 35, py)); }
+                        else if(bc == 3) { bullets.add(new Bullet(px + 5, py)); bullets.add(new Bullet(px + 25, py)); bullets.add(new Bullet(px + 45, py)); }
+                        else if(bc == 4) { bullets.add(new Bullet(px, py)); bullets.add(new Bullet(px + 15, py)); bullets.add(new Bullet(px + 35, py)); bullets.add(new Bullet(px + 50, py)); }
+                        else { bullets.add(new Bullet(px, py)); bullets.add(new Bullet(px + 12, py)); bullets.add(new Bullet(px + 25, py)); bullets.add(new Bullet(px + 38, py)); bullets.add(new Bullet(px + 50, py)); }
                         lastShotTime = currentTime;
                     }
                 }
@@ -86,6 +95,7 @@ public class GamePanel extends JPanel implements ActionListener {
         plane = new Plane(375, 500, activeType);
         score = 0;
         level = 1;
+        freezeEndTime = 0;
         loadLevel(level);
         isPaused = false;
         timer.start();
@@ -97,31 +107,27 @@ public class GamePanel extends JPanel implements ActionListener {
         bullets.clear();
         eggs.clear();
         explosions.clear();
+        powerUps.clear();
         enemyDirection = 1;
 
-        if (lvl == 4) {
-            enemies.add(new BossLevel4(340, 50));
-            return;
-        } else if (lvl == 8) {
-            enemies.add(new BossLevel8(320, 50));
-            return;
-        }
+        if (plane != null) plane.setSpeedMultiplier(1.0 + ((lvl - 1) * 0.15));
 
-        // تنظیم سختی بازی بر اساس جدول مراحل
+        if (lvl == 4) { enemies.add(new BossLevel4(340, 50)); return; }
+        else if (lvl == 8) { enemies.add(new BossLevel8(320, 50)); return; }
+
         int hpBase = (lvl >= 5) ? 3 : 2;
-        if (lvl == 1) { enemySpeed = 1.0; enemyDownStep = 20; eggProbability = 0.002; }
-        else if (lvl == 2) { enemySpeed = 1.5; enemyDownStep = 20; eggProbability = 0.003; }
-        else if (lvl == 3) { enemySpeed = 2.0; enemyDownStep = 25; eggProbability = 0.004; }
-        else if (lvl == 5) { enemySpeed = 2.5; enemyDownStep = 25; eggProbability = 0.006; }
-        else if (lvl == 6) { enemySpeed = 3.0; enemyDownStep = 30; eggProbability = 0.008; }
-        else if (lvl == 7) { enemySpeed = 3.5; enemyDownStep = 30; eggProbability = 0.010; }
+        if (lvl == 1) { enemySpeed = 1.0; enemyDownStep = 15; eggProbability = 0.0002; }
+        else if (lvl == 2) { enemySpeed = 1.2; enemyDownStep = 15; eggProbability = 0.0005; }
+        else if (lvl == 3) { enemySpeed = 1.5; enemyDownStep = 20; eggProbability = 0.0008; }
+        else if (lvl == 5) { enemySpeed = 1.8; enemyDownStep = 20; eggProbability = 0.0010; }
+        else if (lvl == 6) { enemySpeed = 2.0; enemyDownStep = 25; eggProbability = 0.0015; }
+        else if (lvl == 7) { enemySpeed = 2.5; enemyDownStep = 25; eggProbability = 0.0020; }
 
         for (int row = 0; row < 5; row++) {
             for (int col = 0; col < 8; col++) {
                 int startX = 100 + col * 50;
                 int startY = 50 + row * 40;
                 Enemy e;
-
                 if (lvl == 1) e = new NormalEnemy(startX, startY);
                 else if (lvl == 2) e = (row % 2 == 0) ? new NormalEnemy(startX, startY) : new FastEnemy(startX, startY);
                 else if (lvl == 3) e = (row % 2 == 0) ? new NormalEnemy(startX, startY) : new ZigzagEnemy(startX, startY);
@@ -133,7 +139,6 @@ public class GamePanel extends JPanel implements ActionListener {
                     else if (row == 2) e = new FastEnemy(startX, startY);
                     else e = new NormalEnemy(startX, startY);
                 }
-
                 e.setHp(hpBase);
                 enemies.add(e);
             }
@@ -143,14 +148,20 @@ public class GamePanel extends JPanel implements ActionListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (AssetManager.background != null) {
-            g.drawImage(AssetManager.background, 0, 0, 800, 600, null);
+        if (AssetManager.background != null) g.drawImage(AssetManager.background, 0, 0, 800, 600, null);
+
+        boolean isFrozen = System.currentTimeMillis() < freezeEndTime;
+        if (isFrozen) {
+            g.setColor(new Color(0, 200, 255, 50));
+            g.fillRect(0, 0, 800, 600);
         }
+
         if (plane != null) plane.draw(g);
         for (Enemy enemy : enemies) enemy.draw(g);
         for (Bullet bullet : bullets) bullet.draw(g);
         for (Egg egg : eggs) egg.draw(g);
         for (Explosion exp : explosions) exp.draw(g);
+        for (PowerUp pu : powerUps) pu.draw(g);
 
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 14));
@@ -181,28 +192,39 @@ public class GamePanel extends JPanel implements ActionListener {
 
     private void updateEntities() {
         boolean hitEdge = false;
+        boolean isFrozen = System.currentTimeMillis() < freezeEndTime;
 
-        for (Enemy enemy : enemies) {
-            if (enemy instanceof Boss) {
-                ((Boss) enemy).updateBoss(eggs);
-            } else {
-                enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
-                if (enemy.getX() <= 0 || enemy.getX() >= 800 - 40) hitEdge = true;
+        if (!isFrozen) {
+            for (Enemy enemy : enemies) {
+                if (enemy instanceof Boss) {
+                    ((Boss) enemy).updateBoss(eggs);
+                } else {
+                    enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
+                    if (enemy.getX() <= 0 || enemy.getX() >= 800 - 40) hitEdge = true;
 
-                if (Math.random() < eggProbability) {
-                    // تخم مرغ مستقیم رو به پایین
-                    eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, 0, 4));
+                    if (Math.random() < eggProbability) {
+                        eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, 0, 4));
+                    }
+
+                    // فیکس باگ اول: لوپ شدن مرغ‌ها از پایین به بالای صفحه
+                    if (enemy.getY() > 650) {
+                        enemy.setY(-50);
+                    }
                 }
             }
-        }
-
-        if (hitEdge) {
-            enemyDirection *= -1;
-            for (Enemy enemy : enemies) {
-                if (!(enemy instanceof Boss)) {
-                    enemy.setY(enemy.getY() + enemyDownStep);
-                    enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
+            if (hitEdge) {
+                enemyDirection *= -1;
+                for (Enemy enemy : enemies) {
+                    if (!(enemy instanceof Boss)) {
+                        enemy.setY(enemy.getY() + enemyDownStep);
+                        enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
+                    }
                 }
+            }
+            for (int i = eggs.size() - 1; i >= 0; i--) {
+                Egg egg = eggs.get(i);
+                egg.update();
+                if (egg.getY() > 600 || egg.getY() < 0 || egg.getX() < 0 || egg.getX() > 800) eggs.remove(i);
             }
         }
 
@@ -212,12 +234,10 @@ public class GamePanel extends JPanel implements ActionListener {
             if (b.getY() < 0) bullets.remove(i);
         }
 
-        for (int i = eggs.size() - 1; i >= 0; i--) {
-            Egg egg = eggs.get(i);
-            egg.update();
-            if (egg.getY() > 600 || egg.getY() < 0 || egg.getX() < 0 || egg.getX() > 800) {
-                eggs.remove(i);
-            }
+        for (int i = powerUps.size() - 1; i >= 0; i--) {
+            PowerUp p = powerUps.get(i);
+            p.update();
+            if (p.getY() > 600) powerUps.remove(i);
         }
 
         for (int i = explosions.size() - 1; i >= 0; i--) {
@@ -231,7 +251,6 @@ public class GamePanel extends JPanel implements ActionListener {
         if (plane == null) return;
         Rectangle planeRect = new Rectangle(plane.getX(), plane.getY(), 50, 50);
 
-        // برخورد تیر به دشمن
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             Rectangle bRect = new Rectangle(b.getX(), b.getY(), 10, 25);
@@ -240,18 +259,16 @@ public class GamePanel extends JPanel implements ActionListener {
             for (int j = enemies.size() - 1; j >= 0; j--) {
                 Enemy enemy = enemies.get(j);
                 if (bRect.intersects(enemy.getBounds())) {
-
-                    // محاسبه دمیج (اسنایپر دمیج دوبرابر به غول می‌زند)
-                    int damage = 1;
-                    if (enemy instanceof Boss && plane.getType() == 4) {
-                        damage = 2;
-                    }
-
+                    int damage = (enemy instanceof Boss && plane.getType() == 4) ? 2 : 1;
                     enemy.takeDamage(damage);
                     if (enemy.getHp() <= 0) {
                         explosions.add(new Explosion(enemy.getX(), enemy.getY()));
+                        if (!(enemy instanceof Boss) && Math.random() < 0.20) {
+                            int randomType = (int) (Math.random() * 5) + 1;
+                            powerUps.add(new PowerUp(enemy.getX(), enemy.getY(), randomType));
+                        }
                         enemies.remove(j);
-                        score += (enemy instanceof Boss) ? 0 : 10; // امتیاز غول جداگانه داده میشود
+                        score += (enemy instanceof Boss) ? 0 : 10;
                     }
                     hit = true;
                     break;
@@ -265,13 +282,51 @@ public class GamePanel extends JPanel implements ActionListener {
             Egg egg = eggs.get(i);
             Rectangle eggRect = new Rectangle(egg.getX(), egg.getY(), 20, 25);
             if (eggRect.intersects(planeRect)) {
-                explosions.add(new Explosion(plane.getX(), plane.getY()));
                 eggs.remove(i);
-                plane.setLives(plane.getLives() - 1);
-                if (plane.getLives() <= 0) {
-                    timer.stop();
-                    handleGameOver("Game Over!");
+                if (!plane.hasShield()) {
+                    explosions.add(new Explosion(plane.getX(), plane.getY()));
+                    plane.setLives(plane.getLives() - 1);
+                    if (plane.getLives() <= 0) {
+                        timer.stop();
+                        handleGameOver("Game Over!");
+                        return;
+                    }
                 }
+            }
+        }
+
+        // فیکس باگ دوم: برخورد مستقیم خود مرغ به سفینه )
+        for (int j = enemies.size() - 1; j >= 0; j--) {
+            Enemy enemy = enemies.get(j);
+            if (enemy.getBounds().intersects(planeRect)) {
+                if (!plane.hasShield()) {
+                    explosions.add(new Explosion(plane.getX(), plane.getY()));
+                    plane.setLives(plane.getLives() - 1);
+                    enemies.remove(j);
+                    if (plane.getLives() <= 0) {
+                        timer.stop();
+                        handleGameOver("Game Over!");
+                        return;
+                    }
+                } else {
+                    explosions.add(new Explosion(enemy.getX(), enemy.getY()));
+                    enemies.remove(j);
+                    score += 10;
+                }
+            }
+        }
+
+        for (int i = powerUps.size() - 1; i >= 0; i--) {
+            PowerUp p = powerUps.get(i);
+            if (p.getBounds().intersects(planeRect)) {
+                switch(p.getType()) {
+                    case 1: plane.addBullet(); break;
+                    case 2: plane.activateRapidFire(); break;
+                    case 3: if(plane.getLives() < 5) plane.setLives(plane.getLives() + 1); break;
+                    case 4: plane.activateShield(); break;
+                    case 5: freezeEndTime = System.currentTimeMillis() + 3000; break;
+                }
+                powerUps.remove(i);
             }
         }
     }
@@ -279,14 +334,8 @@ public class GamePanel extends JPanel implements ActionListener {
     private void checkLevelProgress() {
         if (enemies.isEmpty()) {
             if (level == 4) score += 500;
-            else if (level == 8) {
-                score += 1000;
-                timer.stop();
-                handleGameOver("You Win! Victory!");
-                return;
-            } else {
-                score += 200;
-            }
+            else if (level == 8) { score += 1000; timer.stop(); handleGameOver("You Win! Victory!"); return; }
+            else { score += 200; }
 
             level++;
             loadLevel(level);
