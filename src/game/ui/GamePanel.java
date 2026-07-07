@@ -429,28 +429,33 @@ public class GamePanel extends JPanel implements ActionListener {
         timer.stop();
 
         if (gameMain.getCurrentUser() != null) {
-            // ثبت در دیتابیس ( برو چکش کن )
             DatabaseManager.saveGameRecord(gameMain.getCurrentUser().getUsername(), score, level);
 
-            // آپدیت امتیاز در حافظه موقت برای نمایش آنی در فروشگاه
-            // مشکل حل شد کامنت رو بردار !
             if (score > gameMain.getCurrentUser().getHighestScore()) {
                 gameMain.getCurrentUser().setHighestScore(score);
             }
         }
 
         SoundManager.stopMusic();
-        if (msg.contains("Win")) {
-            SoundManager.playMusic("assets/sound-effects/Chicken Invaders 2 Remastered OST - Ending Theme.wav");
-        } else {
-            SoundManager.playSound("assets/sound-effects/mixkit-retro-arcade-game-over-470.wav", "gameover");
-        }
 
-        Timer delayTimer = new Timer(1500, evt -> {
-            JOptionPane.showMessageDialog(this, msg + "\nFinal Score: " + score);
-            gameMain.showPanel("MainMenu");
+        // تعریف یک تایمر برای ایجاد تأخیر قبل از پخش صدا و نمایش پیام
+        Timer soundDelayTimer = new Timer(2000, evt -> {
+            if (msg.contains("Win")) {
+                SoundManager.playMusic("assets/sound-effects/Chicken Invaders 2 Remastered OST - Ending Theme.wav");
+            } else {
+                SoundManager.playSound("assets/sound-effects/mixkit-retro-arcade-game-over-470.wav", "gameover");
+            }
+
+            // باز کردن کادر پیام بلافاصله بعد از پخش صدا
+            Timer messageDelayTimer = new Timer(1500, e -> {
+                JOptionPane.showMessageDialog(this, msg + "\nFinal Score: " + score);
+                gameMain.showPanel("MainMenu");
+            });
+            messageDelayTimer.setRepeats(false);
+            messageDelayTimer.start();
         });
-        delayTimer.setRepeats(false);
-        delayTimer.start();
+
+        soundDelayTimer.setRepeats(false);
+        soundDelayTimer.start();
     }
 }
