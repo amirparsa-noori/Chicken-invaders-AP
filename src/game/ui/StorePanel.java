@@ -34,13 +34,13 @@ public class StorePanel extends JPanel {
         itemsPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
         String[] names = {"Default", "Fast", "Heavy", "Sniper"};
-        int[] costs = {0, 1500, 2500, 3500};
+        int[] costs = {0, 5000, 8000, 10000};
 
         for (int i = 0; i < 4; i++) {
             JPanel card = new JPanel(new BorderLayout());
             card.setBackground(Color.DARK_GRAY);
 
-            // لود کردن عکس هواپیما برای فروشگاه
+
             ImageIcon icon = null;
             if (AssetManager.planes[i] != null) {
                 Image img = AssetManager.planes[i].getScaledInstance(60, 60, Image.SCALE_SMOOTH);

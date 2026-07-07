@@ -12,6 +12,7 @@ public abstract class Boss extends Enemy {
         super(x, y, maxHp);
         this.maxHp = maxHp;
     }
+    public int getScoreValue() { return 0; }
 
     public void drawHealthBar(Graphics g, int screenWidth) {
         g.setColor(Color.RED);

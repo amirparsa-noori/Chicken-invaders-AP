@@ -19,7 +19,7 @@ public class GamePanel extends JPanel implements ActionListener {
     private Timer timer;
     private Plane plane;
     private boolean isPaused;
-    private boolean isGameOverState; // متغیر جدید برای قفل کردن کیبورد آخر بازی فکر کنم ایرادش اینطوری اوکی شه
+    private boolean isGameOverState;
 
     private ArrayList<Enemy> enemies;
     private ArrayList<Bullet> bullets;
@@ -52,7 +52,7 @@ public class GamePanel extends JPanel implements ActionListener {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (plane == null || isGameOverState) return; // قفل شدن دکمه‌ها اگه بازی تموم شده باشه که نپره بیرون یهو
+                if (plane == null || isGameOverState) return;
 
                 int key = e.getKeyCode();
                 if (key == KeyEvent.VK_LEFT || key == KeyEvent.VK_A) plane.setMoveLeft(true);
@@ -62,7 +62,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
                 if (key == KeyEvent.VK_P) isPaused = !isPaused;
 
-                // تاییدیه خروج با دکمه Esc --> اینجوری بهتره خیلی
                 if (key == KeyEvent.VK_ESCAPE) {
                     boolean wasPaused = isPaused;
                     isPaused = true;
@@ -134,7 +133,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
         int hpBase = (lvl >= 5) ? 3 : 2;
 
-        // بازگشت به تنظیمات سرعت و احتمال تخم‌مرغ قبلی
         if (lvl == 1) { enemySpeed = 1.0; enemyDownStep = 15; eggProbability = 0.0002; }
         else if (lvl == 2) { enemySpeed = 1.2; enemyDownStep = 15; eggProbability = 0.0005; }
         else if (lvl == 3) { enemySpeed = 1.5; enemyDownStep = 20; eggProbability = 0.0008; }
@@ -182,10 +180,23 @@ public class GamePanel extends JPanel implements ActionListener {
         for (Explosion exp : explosions) exp.draw(g);
         for (PowerUp pu : powerUps) pu.draw(g);
 
+
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 18));
         g.drawString("Score: " + score, 20, 30);
-        if (plane != null) g.drawString("Lives: " + plane.getLives(), 20, 60);
+        if (plane != null) {
+            g.drawString("Lives: " + plane.getLives(), 20, 60);
+            g.drawString("Fire Power: " + plane.getBulletCount() + "/5", 20, 150);
+            if (plane.hasShield()) {
+                g.setColor(Color.CYAN);
+                g.drawString("Shield: ACTIVE", 20, 180);
+            }
+            if (plane.hasRapidFire()) {
+                g.setColor(Color.ORANGE);
+                g.drawString("Rapid Fire: ACTIVE", 20, 210);
+            }
+            g.setColor(Color.WHITE);
+        }
         g.drawString("Level: " + level, 20, 90);
         if (gameMain.getCurrentUser() != null) {
             g.drawString("Player: " + gameMain.getCurrentUser().getUsername(), 20, 120);
@@ -219,10 +230,20 @@ public class GamePanel extends JPanel implements ActionListener {
                     ((Boss) enemy).updateBoss(eggs);
                 } else {
                     enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
-                    if (enemy.getX() <= 0 || enemy.getX() >= 1280 - 50) hitEdge = true; // لبه 1280
+                    if (enemy.getX() <= 0 || enemy.getX() >= 1280 - 50) hitEdge = true;
 
                     if (Math.random() < eggProbability) {
-                        eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, 0, 5));
+
+                        if (enemy instanceof ShooterEnemy && plane != null) {
+                            double dx = plane.getX() - enemy.getX();
+                            double dy = plane.getY() - enemy.getY();
+                            double length = Math.sqrt(dx*dx + dy*dy);
+                            if (length > 0) {
+                                eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, (dx/length)*5, (dy/length)*5));
+                            }
+                        } else {
+                            eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, 0, 5));
+                        }
                     }
 
                     if (enemy.getY() > 720) enemy.setY(-50);
@@ -277,6 +298,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 if (bRect.intersects(enemy.getBounds())) {
                     int damage = (enemy instanceof Boss && plane.getType() == 4) ? 2 : 1;
                     enemy.takeDamage(damage);
+
                     if (enemy.getHp() <= 0) {
                         explosions.add(new Explosion(enemy.getX(), enemy.getY()));
                         SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
@@ -285,8 +307,16 @@ public class GamePanel extends JPanel implements ActionListener {
                             int randomType = (int) (Math.random() * 5) + 1;
                             powerUps.add(new PowerUp(enemy.getX(), enemy.getY(), randomType));
                         }
+
+
+                        int earnedScore = 10;
+                        if (enemy instanceof FastEnemy) earnedScore = 15;
+                        else if (enemy instanceof ZigzagEnemy) earnedScore = 20;
+                        else if (enemy instanceof ShooterEnemy) earnedScore = 25;
+                        else if (enemy instanceof Boss) earnedScore = 0;
+                        score += earnedScore;
+
                         enemies.remove(j);
-                        score += (enemy instanceof Boss) ? 0 : 10;
                     }
                     hit = true;
                     break;
@@ -364,27 +394,21 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     private void handleGameOver(String msg) {
-        if(isGameOverState) return; // جلوگیری از دوبار اجرا شدن / این فکر کنم بهتر بشه
+        if(isGameOverState) return;
         isGameOverState = true;
         timer.stop();
 
         if (gameMain.getCurrentUser() != null) {
-            int oldHigh = gameMain.getCurrentUser().getHighestScore();
-            if (score > oldHigh) {
-                gameMain.getCurrentUser().setHighestScore(score);
-                DatabaseManager.updateScore(gameMain.getCurrentUser().getUsername(), score);
-            }
-        }
 
+            DatabaseManager.saveGameRecord(gameMain.getCurrentUser().getUsername(), score, level);
+        }
 
         SoundManager.stopMusic();
         if (msg.contains("Win")) {
-
             SoundManager.playMusic("assets/sound-effects/Chicken Invaders 2 Remastered OST - Ending Theme.wav");
         } else {
             SoundManager.playSound("assets/sound-effects/mixkit-retro-arcade-game-over-470.wav", "gameover");
         }
-
 
         Timer delayTimer = new Timer(1500, evt -> {
             JOptionPane.showMessageDialog(this, msg + "\nFinal Score: " + score);

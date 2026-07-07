@@ -11,6 +11,8 @@ public class NormalEnemy extends Enemy {
         super(x, y, 2);
     }
 
+    public int getScoreValue() { return 10; }
+
     @Override
     public void draw(Graphics g) {
         if (AssetManager.normalChicken != null) {

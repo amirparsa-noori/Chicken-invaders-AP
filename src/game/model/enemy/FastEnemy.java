@@ -10,6 +10,8 @@ public class FastEnemy extends Enemy {
         super(x, y, 1);
     }
 
+    public int getScoreValue() { return 15; }
+
     @Override
     public void draw(Graphics g) {
         if (AssetManager.fastChicken != null) {
