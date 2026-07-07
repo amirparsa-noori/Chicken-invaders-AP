@@ -11,7 +11,7 @@ public class BossLevel4 extends Boss {
     private long lastShotTime = 0;
 
     public BossLevel4(int x, int y) {
-        super(x, y, 50); // 50 جان ( اینو اگر ساده بود تغییر بده )
+        super(x, y, 100); // جونش از 50 شد 100
     }
 
     @Override
@@ -24,21 +24,20 @@ public class BossLevel4 extends Boss {
         if (AssetManager.boss1 != null) {
             g.drawImage(AssetManager.boss1, x, y, 120, 120, null);
         }
-        drawHealthBar(g, 800);
+        drawHealthBar(g, 1280); // مچ شده با رزولوشن جدید
     }
 
     @Override
     public void updateBoss(ArrayList<Egg> eggs) {
-        x += (int) (1.5 * direction);
-        if (x <= 0 || x >= 800 - 120) direction *= -1;
+        x += (int) (2.5 * direction); // سرعت حرکت بیشتر شد
+        if (x <= 0 || x >= 1280 - 120) direction *= -1;
 
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastShotTime >= 1500) {
-            // شلیک 4 جهته
-            eggs.add(new Egg(x + 60, y + 60, 0, -4)); // بالا
-            eggs.add(new Egg(x + 60, y + 60, 0, 4));  // پایین
-            eggs.add(new Egg(x + 60, y + 60, -4, 0)); // چپ
-            eggs.add(new Egg(x + 60, y + 60, 4, 0));  // راست
+        if (currentTime - lastShotTime >= 1000) { // شلیک سریع‌تر (هر ۱ ثانیه)
+            eggs.add(new Egg(x + 60, y + 60, 0, -6));
+            eggs.add(new Egg(x + 60, y + 60, 0, 6));
+            eggs.add(new Egg(x + 60, y + 60, -6, 0));
+            eggs.add(new Egg(x + 60, y + 60, 6, 0));
             lastShotTime = currentTime;
         }
     }

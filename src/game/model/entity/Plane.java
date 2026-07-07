@@ -50,9 +50,9 @@ public class Plane {
     public void update() {
         int currentSpeed = (int) (speed * speedMultiplier);
         if (moveLeft && x > 0) x -= currentSpeed;
-        if (moveRight && x < 800 - 50) x += currentSpeed;
+        if (moveRight && x < 1280 - 60) x += currentSpeed; // لبه راست
         if (moveUp && y > 350) y -= currentSpeed;
-        if (moveDown && y < 600 - 50) y += currentSpeed;
+        if (moveDown && y < 720 - 80) y += currentSpeed;   // لبه پایین
     }
 
     public void draw(Graphics g) {

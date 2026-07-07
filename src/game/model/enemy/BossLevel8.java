@@ -12,7 +12,7 @@ public class BossLevel8 extends Boss {
     private long lastShotTime = 0;
 
     public BossLevel8(int x, int y) {
-        super(x, y, 100); // 100 جان
+        super(x, y, 200); // جون غول آخر هم شد 200
     }
 
     @Override
@@ -22,26 +22,22 @@ public class BossLevel8 extends Boss {
 
     @Override
     public void draw(Graphics g) {
-        if (AssetManager.boss2 != null) {
-            g.drawImage(AssetManager.boss2, x, y, 160, 160, null);
-        }
-        drawHealthBar(g, 800);
+        if (AssetManager.boss2 != null) g.drawImage(AssetManager.boss2, x, y, 160, 160, null);
+        drawHealthBar(g, 1280);
     }
 
     @Override
     public void updateBoss(ArrayList<Egg> eggs) {
-        x += dx;
-        y += dy;
-        if (x <= 0 || x >= 800 - 160) dx *= -1;
-        if (y <= 10 || y >= 150) dy *= -1;
+        x += dx; y += dy;
+        if (x <= 0 || x >= 1280 - 160) dx *= -1; // لبه راست 1280
+        if (y <= 10 || y >= 200) dy *= -1;
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastShotTime >= 1000) {
-            // شلیک 8 جهته
             double[] angles = {0, 45, 90, 135, 180, 225, 270, 315};
             for (double angle : angles) {
                 double rad = Math.toRadians(angle);
-                eggs.add(new Egg(x + 80, y + 80, 5 * Math.cos(rad), 5 * Math.sin(rad)));
+                eggs.add(new Egg(x + 80, y + 80, 6 * Math.cos(rad), 6 * Math.sin(rad))); // تخم‌مرغ سریع‌تر
             }
             lastShotTime = currentTime;
         }

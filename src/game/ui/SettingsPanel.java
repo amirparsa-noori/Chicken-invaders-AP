@@ -5,8 +5,6 @@ import game.main.GameMain;
 import game.util.SoundManager;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class SettingsPanel extends JPanel {
     private GameMain gameMain;
@@ -48,6 +46,13 @@ public class SettingsPanel extends JPanel {
             else SoundManager.playMusic("assets/sound-effects/Chicken Invaders 2 Remastered OST - Main Theme.wav");
 
             if (gameMain.getCurrentUser() != null) {
+                // آپدیت متغیرهای یوزر روی حافظه
+                gameMain.getCurrentUser().sMusic = cbMusic.isSelected();
+                gameMain.getCurrentUser().sShoot = cbShoot.isSelected();
+                gameMain.getCurrentUser().sExplode = cbExplode.isSelected();
+                gameMain.getCurrentUser().sGameOver = cbGameOver.isSelected();
+
+                // ذخیره در دیتابیس
                 DatabaseManager.updateSettings(gameMain.getCurrentUser().getUsername(),
                         cbMusic.isSelected(), cbShoot.isSelected(), cbExplode.isSelected(), cbGameOver.isSelected());
             }
@@ -66,15 +71,15 @@ public class SettingsPanel extends JPanel {
 
     public void loadUserSettings() {
         if (gameMain.getCurrentUser() != null) {
-            cbMusic.setSelected(gameMain.getCurrentUser().sMusic);
-            cbShoot.setSelected(gameMain.getCurrentUser().sShoot);
-            cbExplode.setSelected(gameMain.getCurrentUser().sExplode);
-            cbGameOver.setSelected(gameMain.getCurrentUser().sGameOver);
-            // اعمال فوری
-            SoundManager.musicEnabled = cbMusic.isSelected();
-            SoundManager.shootEnabled = cbShoot.isSelected();
-            SoundManager.explosionEnabled = cbExplode.isSelected();
-            SoundManager.gameOverEnabled = cbGameOver.isSelected();
+            SoundManager.musicEnabled = gameMain.getCurrentUser().sMusic;
+            SoundManager.shootEnabled = gameMain.getCurrentUser().sShoot;
+            SoundManager.explosionEnabled = gameMain.getCurrentUser().sExplode;
+            SoundManager.gameOverEnabled = gameMain.getCurrentUser().sGameOver;
         }
+
+        cbMusic.setSelected(SoundManager.musicEnabled);
+        cbShoot.setSelected(SoundManager.shootEnabled);
+        cbExplode.setSelected(SoundManager.explosionEnabled);
+        cbGameOver.setSelected(SoundManager.gameOverEnabled);
     }
 }
