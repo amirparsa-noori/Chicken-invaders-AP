@@ -11,6 +11,10 @@ public class ShooterEnemy extends Enemy {
     }
 
     @Override
+    public int getScoreValue() {
+        return 25;}
+
+    @Override
     public void draw(Graphics g) {
         if (AssetManager.shooterChicken != null) {
             g.drawImage(AssetManager.shooterChicken, x, y, 45, 45, null);

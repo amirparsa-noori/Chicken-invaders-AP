@@ -9,7 +9,7 @@ public class FastEnemy extends Enemy {
     public FastEnemy(int x, int y) {
         super(x, y, 1);
     }
-
+    @Override
     public int getScoreValue() { return 15; }
 
     @Override

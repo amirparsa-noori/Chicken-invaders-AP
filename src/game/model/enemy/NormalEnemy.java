@@ -10,7 +10,7 @@ public class NormalEnemy extends Enemy {
     public NormalEnemy(int x, int y) {
         super(x, y, 2);
     }
-
+    @Override
     public int getScoreValue() { return 10; }
 
     @Override

@@ -25,22 +25,23 @@ public class HowToPlayPanel extends JPanel {
         infoText.setMargin(new Insets(20, 50, 20, 50));
 
         String instructions = "Game Controls:\n"
-                + "- Move: W, A, S, D or Arrow Keys\n"
-                + "- Shoot: Spacebar\n"
-                + "- Pause/Resume: P\n"
-                + "- Exit Game: Esc\n\n"
-                + "Gameplay:\n"
-                + "- Destroy waves of different chickens (Normal, Fast, Zigzag, Shooter) to advance levels.\n"
-                + "- Boss fights happen at Level 4 and Level 8.\n"
-                + "- Dodge the eggs dropped by chickens to survive.\n\n"
-                + "Power-Ups (20% drop rate from normal chickens):\n"
-                + "- Add Fire: Increases your simultaneous bullets permanently (Max 5).\n"
-                + "- Rapid Fire: Doubles your shooting speed for 8 seconds.\n"
-                + "- Extra Life: Grants you an extra heart (Max 5).\n"
-                + "- Shield: Makes you invincible to eggs for 10 seconds.\n"
-                + "- Freeze Bomb: Stops all enemies and eggs for 3 seconds.\n\n"
-                + "Store:\n"
-                + "Use your Highest Score to buy new planes with different Speeds and Fire Rates!";
+                + "- Move : W, A, S, D or Arrow Keys\n"
+                + "- Shoot : Spacebar\n"
+                + "- Pause/Resume : P\n"
+                + "- Exit Game : Esc\n\n"
+                + "Gameplay :\n"
+                + "- Destroy different chickens (Normal, Fast, Zigzag, Shooter)\n"
+                + "- Boss fights at Level 4 and Level 8.\n"
+                + "- avoid the eggs dropped by chickens to survive.\n\n"
+                + "Power Ups (20% drop rate from normal chickens):\n"
+                + "- Add Fire : Increases your bullets (Max 5).\n"
+                + "- Rapid Fire : Double shooting speed for 8 seconds.\n"
+                + "- Extra Life : give you an extra heart (Max 5).\n"
+                + "- Shield : protected from eggs for 10 seconds.\n"
+                + "- Freeze Bomb : Stops all enemies and eggs for 3 seconds.\n\n"
+                + "Store : Use your Highest Score to buy new planes with different Speeds and Fire Rates!!! enjoy !!\n\n"
+                + "DEVELOPED BY AMIRPARSA_NOORI_40413430";
+
 
         infoText.setText(instructions);
         add(infoText, BorderLayout.CENTER);

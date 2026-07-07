@@ -9,6 +9,7 @@ public class ZigzagEnemy extends Enemy {
     public ZigzagEnemy(int x, int y) {
         super(x, y, 2);
     }
+    @Override
     public int getScoreValue() { return 20; }
 
     @Override

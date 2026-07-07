@@ -133,12 +133,12 @@ public class GamePanel extends JPanel implements ActionListener {
 
         int hpBase = (lvl >= 5) ? 3 : 2;
 
-        if (lvl == 1) { enemySpeed = 1.0; enemyDownStep = 15; eggProbability = 0.0002; }
-        else if (lvl == 2) { enemySpeed = 1.2; enemyDownStep = 15; eggProbability = 0.0005; }
-        else if (lvl == 3) { enemySpeed = 1.5; enemyDownStep = 20; eggProbability = 0.0008; }
-        else if (lvl == 5) { enemySpeed = 1.8; enemyDownStep = 20; eggProbability = 0.0010; }
-        else if (lvl == 6) { enemySpeed = 2.0; enemyDownStep = 25; eggProbability = 0.0015; }
-        else if (lvl == 7) { enemySpeed = 2.5; enemyDownStep = 25; eggProbability = 0.0020; }
+        if (lvl == 1) { enemySpeed = 1.0; enemyDownStep = 15; eggProbability = 0.0008; }
+        else if (lvl == 2) { enemySpeed = 1.2; enemyDownStep = 15; eggProbability = 0.0015; }
+        else if (lvl == 3) { enemySpeed = 1.5; enemyDownStep = 20; eggProbability = 0.0025; }
+        else if (lvl == 5) { enemySpeed = 1.8; enemyDownStep = 20; eggProbability = 0.0040; }
+        else if (lvl == 6) { enemySpeed = 2.0; enemyDownStep = 25; eggProbability = 0.0055; }
+        else if (lvl == 7) { enemySpeed = 2.5; enemyDownStep = 25; eggProbability = 0.0075; }
 
         for (int row = 0; row < 5; row++) {
             for (int col = 0; col < 8; col++) {
@@ -179,7 +179,6 @@ public class GamePanel extends JPanel implements ActionListener {
         for (Egg egg : eggs) egg.draw(g);
         for (Explosion exp : explosions) exp.draw(g);
         for (PowerUp pu : powerUps) pu.draw(g);
-
 
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 18));
@@ -225,15 +224,34 @@ public class GamePanel extends JPanel implements ActionListener {
         boolean isFrozen = System.currentTimeMillis() < freezeEndTime;
 
         if (!isFrozen) {
+            // آپدیت شبکه اصلی مرغ‌ها
             for (Enemy enemy : enemies) {
                 if (enemy instanceof Boss) {
                     ((Boss) enemy).updateBoss(eggs);
                 } else {
-                    enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
-                    if (enemy.getX() <= 0 || enemy.getX() >= 1280 - 50) hitEdge = true;
+                    // حرکت شبکه ای ( این باگگ داره !! )
+                    enemy.setGridX(enemy.getGridX() + (int) (enemySpeed * enemyDirection));
+                    if (enemy.getGridX() <= 0 || enemy.getGridX() >= 1280 - 50) hitEdge = true;
+                }
+            }
 
-                    if (Math.random() < eggProbability) {
+            if (hitEdge) {
+                enemyDirection *= -1;
+                for (Enemy enemy : enemies) {
+                    if (!(enemy instanceof Boss)) {
+                        enemy.setGridY(enemy.getGridY() + enemyDownStep);
+                        enemy.setGridX(enemy.getGridX() + (int) (enemySpeed * enemyDirection));
+                    }
+                }
+            }
 
+            for (Enemy enemy : enemies) {
+                if (!(enemy instanceof Boss)) {
+                    // محاسبه انیمیشن پرواز برای مرغ‌های جدید
+                    enemy.updateSpawningMovement();
+
+                    // مرغ‌هایی که در حال ورود به صحنه هستند تخم نمی‌گذارند ( اینو میتونیم ادیت کنیم )
+                    if (!enemy.isSpawning() && Math.random() < eggProbability) {
                         if (enemy instanceof ShooterEnemy && plane != null) {
                             double dx = plane.getX() - enemy.getX();
                             double dy = plane.getY() - enemy.getY();
@@ -246,18 +264,10 @@ public class GamePanel extends JPanel implements ActionListener {
                         }
                     }
 
-                    if (enemy.getY() > 720) enemy.setY(-50);
+                    if (enemy.getGridY() > 720) enemy.setGridY(-50);
                 }
             }
-            if (hitEdge) {
-                enemyDirection *= -1;
-                for (Enemy enemy : enemies) {
-                    if (!(enemy instanceof Boss)) {
-                        enemy.setY(enemy.getY() + enemyDownStep);
-                        enemy.setX(enemy.getX() + (int) (enemySpeed * enemyDirection));
-                    }
-                }
-            }
+
             for (int i = eggs.size() - 1; i >= 0; i--) {
                 Egg egg = eggs.get(i);
                 egg.update();
@@ -288,6 +298,7 @@ public class GamePanel extends JPanel implements ActionListener {
         if (plane == null) return;
         Rectangle planeRect = new Rectangle(plane.getX(), plane.getY(), 50, 50);
 
+        // برخورد تیر به دشمن
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             Rectangle bRect = new Rectangle(b.getX(), b.getY(), 10, 25);
@@ -296,27 +307,35 @@ public class GamePanel extends JPanel implements ActionListener {
             for (int j = enemies.size() - 1; j >= 0; j--) {
                 Enemy enemy = enemies.get(j);
                 if (bRect.intersects(enemy.getBounds())) {
-                    int damage = (enemy instanceof Boss && plane.getType() == 4) ? 2 : 1;
-                    enemy.takeDamage(damage);
 
-                    if (enemy.getHp() <= 0) {
+                    if (enemy instanceof Boss) {
+                        int damage = (plane.getType() == 4) ? 2 : 1;
+                        enemy.takeDamage(damage);
+                        if (enemy.getHp() <= 0) {
+                            explosions.add(new Explosion(enemy.getX(), enemy.getY()));
+                            SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
+                            enemies.remove(j);
+                            score += enemy.getScoreValue(); // صفر برای غول ( حل باگگ ! )
+                        }
+                    } else {
+
+                        enemy.takeDamage(1);
                         explosions.add(new Explosion(enemy.getX(), enemy.getY()));
                         SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
+                        score += enemy.getScoreValue();
 
-                        if (!(enemy instanceof Boss) && Math.random() < 0.20) {
+                        if (Math.random() < 0.20) {
                             int randomType = (int) (Math.random() * 5) + 1;
                             powerUps.add(new PowerUp(enemy.getX(), enemy.getY(), randomType));
                         }
 
-
-                        int earnedScore = 10;
-                        if (enemy instanceof FastEnemy) earnedScore = 15;
-                        else if (enemy instanceof ZigzagEnemy) earnedScore = 20;
-                        else if (enemy instanceof ShooterEnemy) earnedScore = 25;
-                        else if (enemy instanceof Boss) earnedScore = 0;
-                        score += earnedScore;
-
-                        enemies.remove(j);
+                        if (enemy.getHp() > 0) {
+                            // شمارنده هنوز > 0 است، مرغ جایگزین از گوشه ظاهر می‌شود
+                            enemy.startSpawning();
+                        } else {
+                            // شمارنده صفر شد، خانه کاملا پاک می‌شود
+                            enemies.remove(j);
+                        }
                     }
                     hit = true;
                     break;
@@ -349,7 +368,13 @@ public class GamePanel extends JPanel implements ActionListener {
                     explosions.add(new Explosion(plane.getX(), plane.getY()));
                     SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
                     plane.setLives(plane.getLives() - 1);
-                    enemies.remove(j);
+
+                    if (!(enemy instanceof Boss)) {
+                        enemy.takeDamage(1);
+                        if (enemy.getHp() > 0) enemy.startSpawning();
+                        else enemies.remove(j);
+                    }
+
                     if (plane.getLives() <= 0) {
                         handleGameOver("Game Over!");
                         return;
@@ -357,8 +382,13 @@ public class GamePanel extends JPanel implements ActionListener {
                 } else {
                     explosions.add(new Explosion(enemy.getX(), enemy.getY()));
                     SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
-                    enemies.remove(j);
-                    score += 10;
+
+                    if (!(enemy instanceof Boss)) {
+                        enemy.takeDamage(1);
+                        score += enemy.getScoreValue();
+                        if (enemy.getHp() > 0) enemy.startSpawning();
+                        else enemies.remove(j);
+                    }
                 }
             }
         }
@@ -399,8 +429,14 @@ public class GamePanel extends JPanel implements ActionListener {
         timer.stop();
 
         if (gameMain.getCurrentUser() != null) {
-
+            // ثبت در دیتابیس ( برو چکش کن )
             DatabaseManager.saveGameRecord(gameMain.getCurrentUser().getUsername(), score, level);
+
+            // آپدیت امتیاز در حافظه موقت برای نمایش آنی در فروشگاه
+            // مشکل حل شد کامنت رو بردار !
+            if (score > gameMain.getCurrentUser().getHighestScore()) {
+                gameMain.getCurrentUser().setHighestScore(score);
+            }
         }
 
         SoundManager.stopMusic();
