@@ -56,6 +56,10 @@ public class MainMenuPanel extends JPanel {
             }
         } else if (action.equals("How to Play")) {
             gameMain.showPanel("HowToPlay");
+        } else if (action.equals("High Scores")) {
+            gameMain.showPanel("HighScores");
+        } else if (action.equals("Settings")) {
+            gameMain.showPanel("Settings");
         }
     }
 }

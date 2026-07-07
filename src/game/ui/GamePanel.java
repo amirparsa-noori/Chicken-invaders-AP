@@ -5,6 +5,7 @@ import game.main.GameMain;
 import game.model.entity.*;
 import game.model.enemy.*;
 import game.util.AssetManager;
+import game.util.SoundManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -65,12 +66,18 @@ public class GamePanel extends JPanel implements ActionListener {
                         int bc = plane.getBulletCount();
                         int px = plane.getX();
                         int py = plane.getY();
+
+
                         if(bc == 1) bullets.add(new Bullet(px + 25, py));
                         else if(bc == 2) { bullets.add(new Bullet(px + 15, py)); bullets.add(new Bullet(px + 35, py)); }
                         else if(bc == 3) { bullets.add(new Bullet(px + 5, py)); bullets.add(new Bullet(px + 25, py)); bullets.add(new Bullet(px + 45, py)); }
                         else if(bc == 4) { bullets.add(new Bullet(px, py)); bullets.add(new Bullet(px + 15, py)); bullets.add(new Bullet(px + 35, py)); bullets.add(new Bullet(px + 50, py)); }
                         else { bullets.add(new Bullet(px, py)); bullets.add(new Bullet(px + 12, py)); bullets.add(new Bullet(px + 25, py)); bullets.add(new Bullet(px + 38, py)); bullets.add(new Bullet(px + 50, py)); }
+
                         lastShotTime = currentTime;
+
+
+                        SoundManager.playSound("assets/sound-effects/mixkit-short-laser-gun-shot-1670.wav", "shoot");
                     }
                 }
             }
@@ -110,6 +117,7 @@ public class GamePanel extends JPanel implements ActionListener {
         powerUps.clear();
         enemyDirection = 1;
 
+        // همگام سازی سرعت سفینه با سختی مرحله ( این ابتکاری هستش اگر خوب درنیومد حذف بشه !
         if (plane != null) plane.setSpeedMultiplier(1.0 + ((lvl - 1) * 0.15));
 
         if (lvl == 4) { enemies.add(new BossLevel4(340, 50)); return; }
@@ -150,6 +158,7 @@ public class GamePanel extends JPanel implements ActionListener {
         super.paintComponent(g);
         if (AssetManager.background != null) g.drawImage(AssetManager.background, 0, 0, 800, 600, null);
 
+        // افکت فریز بمب
         boolean isFrozen = System.currentTimeMillis() < freezeEndTime;
         if (isFrozen) {
             g.setColor(new Color(0, 200, 255, 50));
@@ -206,7 +215,7 @@ public class GamePanel extends JPanel implements ActionListener {
                         eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, 0, 4));
                     }
 
-                    // فیکس باگ اول: لوپ شدن مرغ‌ها از پایین به بالای صفحه
+                    // لوپ شدن مرغ‌ها از پایین به بالای صفحه اینم چک شود!!
                     if (enemy.getY() > 650) {
                         enemy.setY(-50);
                     }
@@ -251,6 +260,7 @@ public class GamePanel extends JPanel implements ActionListener {
         if (plane == null) return;
         Rectangle planeRect = new Rectangle(plane.getX(), plane.getY(), 50, 50);
 
+        // برخورد تیر به دشمن !!
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             Rectangle bRect = new Rectangle(b.getX(), b.getY(), 10, 25);
@@ -263,6 +273,10 @@ public class GamePanel extends JPanel implements ActionListener {
                     enemy.takeDamage(damage);
                     if (enemy.getHp() <= 0) {
                         explosions.add(new Explosion(enemy.getX(), enemy.getY()));
+                        // صدای انفجار چک شود !
+                        SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
+
+                        // دراپ پاورآپ چک شود !
                         if (!(enemy instanceof Boss) && Math.random() < 0.20) {
                             int randomType = (int) (Math.random() * 5) + 1;
                             powerUps.add(new PowerUp(enemy.getX(), enemy.getY(), randomType));
@@ -285,6 +299,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 eggs.remove(i);
                 if (!plane.hasShield()) {
                     explosions.add(new Explosion(plane.getX(), plane.getY()));
+                    SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
                     plane.setLives(plane.getLives() - 1);
                     if (plane.getLives() <= 0) {
                         timer.stop();
@@ -295,12 +310,13 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
 
-        // فیکس باگ دوم: برخورد مستقیم خود مرغ به سفینه )
+        // برخورد مستقیم مرغ به هواپیما
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
             if (enemy.getBounds().intersects(planeRect)) {
                 if (!plane.hasShield()) {
                     explosions.add(new Explosion(plane.getX(), plane.getY()));
+                    SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
                     plane.setLives(plane.getLives() - 1);
                     enemies.remove(j);
                     if (plane.getLives() <= 0) {
@@ -310,12 +326,14 @@ public class GamePanel extends JPanel implements ActionListener {
                     }
                 } else {
                     explosions.add(new Explosion(enemy.getX(), enemy.getY()));
+                    SoundManager.playSound("assets/sound-effects/mixkit-epic-impact-afar-explosion-2782.wav", "explosion");
                     enemies.remove(j);
                     score += 10;
                 }
             }
         }
 
+        // گرفتن پاورآپ
         for (int i = powerUps.size() - 1; i >= 0; i--) {
             PowerUp p = powerUps.get(i);
             if (p.getBounds().intersects(planeRect)) {
@@ -350,6 +368,14 @@ public class GamePanel extends JPanel implements ActionListener {
                 DatabaseManager.updateScore(gameMain.getCurrentUser().getUsername(), score);
             }
         }
+
+        // پخش موسیقی پایان بازی یا باخت اینو چک کن درست پلی بشه !!
+        if (msg.contains("Win")) {
+            SoundManager.playSound("assets/sound-effects/Chicken Invaders 2 Remastered OST - Ending Theme.wav", "gameover");
+        } else {
+            SoundManager.playSound("assets/sound-effects/mixkit-retro-arcade-game-over-470.wav", "gameover");
+        }
+
         JOptionPane.showMessageDialog(this, msg + "\nFinal Score: " + score);
         gameMain.showPanel("MainMenu");
     }

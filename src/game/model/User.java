@@ -6,11 +6,18 @@ public class User {
     private int lastLevel;
     private int activePlane;
 
-    public User(String username, int highestScore, int lastLevel, int activePlane) {
+    public boolean sMusic, sShoot, sExplode, sGameOver;
+
+    public User(String username, int highestScore, int lastLevel, int activePlane,
+                boolean sMusic, boolean sShoot, boolean sExplode, boolean sGameOver) {
         this.username = username;
         this.highestScore = highestScore;
         this.lastLevel = lastLevel;
         this.activePlane = activePlane;
+        this.sMusic = sMusic;
+        this.sShoot = sShoot;
+        this.sExplode = sExplode;
+        this.sGameOver = sGameOver;
     }
 
     public String getUsername() { return username; }
