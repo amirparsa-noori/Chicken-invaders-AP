@@ -298,7 +298,14 @@ public class GamePanel extends JPanel implements ActionListener {
         if (plane == null) return;
         Rectangle planeRect = new Rectangle(plane.getX(), plane.getY(), 50, 50);
 
-        // برخورد تیر به دشمن
+        handleBulletEnemyCollisions();
+        handleEggPlaneCollisions(planeRect);
+        handleEnemyPlaneCollisions(planeRect);
+        handlePowerUpCollisions(planeRect);
+    }
+
+    private void handleBulletEnemyCollisions() {
+
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             Rectangle bRect = new Rectangle(b.getX(), b.getY(), 10, 25);
@@ -343,7 +350,9 @@ public class GamePanel extends JPanel implements ActionListener {
             }
             if (hit) bullets.remove(i);
         }
+    }
 
+    private void handleEggPlaneCollisions(Rectangle planeRect) {
         for (int i = eggs.size() - 1; i >= 0; i--) {
             Egg egg = eggs.get(i);
             Rectangle eggRect = new Rectangle(egg.getX(), egg.getY(), 20, 25);
@@ -360,7 +369,9 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
         }
+    }
 
+    private void handleEnemyPlaneCollisions(Rectangle planeRect) {
         for (int j = enemies.size() - 1; j >= 0; j--) {
             Enemy enemy = enemies.get(j);
             if (enemy.getBounds().intersects(planeRect)) {
@@ -392,7 +403,9 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
         }
+    }
 
+    private void handlePowerUpCollisions(Rectangle planeRect) {
         for (int i = powerUps.size() - 1; i >= 0; i--) {
             PowerUp p = powerUps.get(i);
             if (p.getBounds().intersects(planeRect)) {
