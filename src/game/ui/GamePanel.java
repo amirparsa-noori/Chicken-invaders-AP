@@ -225,13 +225,14 @@ public class GamePanel extends JPanel implements ActionListener {
 
         if (!isFrozen) {
             // آپدیت شبکه اصلی مرغ‌ها
-            for (Enemy enemy : enemies) {
+
+            for (int i = 0; i < enemies.size(); i++) {
+                Enemy enemy = enemies.get(i);
                 if (enemy instanceof Boss) {
                     ((Boss) enemy).updateBoss(eggs);
                 } else {
-                    // حرکت شبکه ای ( این باگگ داره !! )
-                    enemy.setGridX(enemy.getGridX() + (int) (enemySpeed * enemyDirection));
-                    if (enemy.getGridX() <= 0 || enemy.getGridX() >= 1280 - 50) hitEdge = true;
+                    enemy.setGridX(enemy.getGridX() + (int)(enemySpeed * 2)); // فقط میره راست!
+                    enemy.updateSpawningMovement();
                 }
             }
 
@@ -278,7 +279,7 @@ public class GamePanel extends JPanel implements ActionListener {
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             b.update();
-            if (b.getY() < 0) bullets.remove(i);
+            if (b.getY() < -100 || b.getX() > 1280) bullets.remove(i);
         }
 
         for (int i = powerUps.size() - 1; i >= 0; i--) {

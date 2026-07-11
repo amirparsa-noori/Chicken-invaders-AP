@@ -24,21 +24,19 @@ public class BossLevel4 extends Boss {
         if (AssetManager.boss1 != null) {
             g.drawImage(AssetManager.boss1, x, y, 120, 120, null);
         }
-        drawHealthBar(g, 1280); // مچ شده با رزولوشن جدید
+        drawHealthBar(g, 1280);
     }
 
     @Override
     public void updateBoss(ArrayList<Egg> eggs) {
-        x += (int) (2.5 * direction); // سرعت حرکت بیشتر شد
-        if (x <= 0 || x >= 1280 - 120) direction *= -1;
 
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastShotTime >= 1000) { // شلیک سریع‌تر (هر ۱ ثانیه)
-            eggs.add(new Egg(x + 60, y + 60, 0, -6));
-            eggs.add(new Egg(x + 60, y + 60, 0, 6));
-            eggs.add(new Egg(x + 60, y + 60, -6, 0));
-            eggs.add(new Egg(x + 60, y + 60, 6, 0));
-            lastShotTime = currentTime;
+        if (Math.random() > 0.8) {
+            x += 50 * direction;
+        }
+        if (x <= 0 || x >= 1100) direction *= -1;
+
+        if (Math.random() > 0.95) {
+            eggs.add(new Egg(x + 60, y + 60, 0, 10));
         }
     }
 }
