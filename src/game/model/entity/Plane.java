@@ -49,10 +49,11 @@ public class Plane {
 
     public void update() {
         int currentSpeed = (int) (speed * speedMultiplier);
-        if (moveLeft && x > 0) x -= currentSpeed;
-        if (moveRight && x < 1280 - 60) x += currentSpeed; // لبه راست
+        // این موضوع هم در حال اصلاح می باشد ! ( حرکت هواپیما ) ---> بررسی بشه
+        if (moveLeft && x < 1280 - 60) x += currentSpeed;
+        if (moveRight && x > 0) x -= currentSpeed;
         if (moveUp && y > 350) y -= currentSpeed;
-        if (moveDown && y < 720 - 80) y += currentSpeed;   // لبه پایین
+        if (moveDown && y < 720 - 80) y += currentSpeed;
     }
 
     public void draw(Graphics g) {

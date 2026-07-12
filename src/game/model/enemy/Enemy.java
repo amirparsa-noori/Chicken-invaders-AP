@@ -58,6 +58,10 @@ public abstract class Enemy {
     public void updateSpawningMovement() {
 
         long time = System.currentTimeMillis();
+        // فکر کنم درست شد ؟
+        if (x > 2000) x = 0;
+        if (y < -500) y = 100;
+
         if (isSpawning) {
             x += (int) (Math.sin(time / 100.0) * 10);
             y += 5;
