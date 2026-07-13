@@ -48,12 +48,20 @@ public class Plane {
     public int getFireRate() { return hasRapidFire() ? fireRate / 2 : fireRate; }
 
     public void update() {
+        // بررسی شود !
+        double velocityX = 0;
+        double velocityY = 0;
         int currentSpeed = (int) (speed * speedMultiplier);
-        // این موضوع هم در حال اصلاح می باشد ! ( حرکت هواپیما ) ---> بررسی بشه
-        if (moveLeft && x < 1280 - 60) x += currentSpeed;
-        if (moveRight && x > 0) x -= currentSpeed;
-        if (moveUp && y > 350) y -= currentSpeed;
-        if (moveDown && y < 720 - 80) y += currentSpeed;
+
+        if (moveLeft) velocityX -= currentSpeed * 2.5;
+        if (moveRight) velocityX += currentSpeed * 2.5;
+        if (moveUp) velocityY -= currentSpeed * 2.5;
+        if (moveDown) velocityY += currentSpeed * 2.5;
+
+        x += (int) velocityX;
+        y += (int) velocityY;
+        velocityX *= 0.9;
+        velocityY *= 0.9;
     }
 
     public void draw(Graphics g) {

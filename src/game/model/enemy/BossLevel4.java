@@ -30,13 +30,11 @@ public class BossLevel4 extends Boss {
     @Override
     public void updateBoss(ArrayList<Egg> eggs) {
 
-        if (Math.random() > 0.8) {
-            x += 50 * direction;
+        if (System.currentTimeMillis() % 100 < 10) {
+            this.x = (int) (Math.random() * 1000);
+            this.y = (int) (Math.random() * 300);
         }
-        if (x <= 0 || x >= 1100) direction *= -1;
-
-        if (Math.random() > 0.95) {
-            eggs.add(new Egg(x + 60, y + 60, 0, 10));
-        }
+        // آبدیت شد بررسی بشه !
+        eggs.add(new Egg(x, y, Math.random() * 10, Math.random() * 10));
     }
 }

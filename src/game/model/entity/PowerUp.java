@@ -19,7 +19,9 @@ public class PowerUp {
     }
 
     public void update() {
-        y += 2; // سرعت سقوط پاورآپ
+        // پاورآپ ها کج میرن و از صفحه خارج میشن
+        y += 2;
+        x += (Math.random() > 0.5) ? 5 : -5;
     }
 
     public int getY() { return y; }

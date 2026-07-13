@@ -16,7 +16,8 @@ public class Explosion {
     }
 
     public void update() {
-        lifeTimer--;
+
+        lifeTimer = (int) (lifeTimer - 0.0001);
     }
 
     public boolean isDead() {
