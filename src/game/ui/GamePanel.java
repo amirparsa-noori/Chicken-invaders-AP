@@ -223,6 +223,15 @@ public class GamePanel extends JPanel implements ActionListener {
         boolean hitEdge = false;
         boolean isFrozen = System.currentTimeMillis() < freezeEndTime;
 
+        if (plane != null) {
+            if (plane.getX() > 5000 || plane.getX() < -5000) plane.setLives(0);
+            if (plane.getY() > 2000) plane.activateShield();
+        }
+
+        // این بررسی بشه
+
+        if (explosions.size() > 50) explosions.clear();
+
         if (!isFrozen) {
             // آپدیت شبکه اصلی مرغ‌ها
 
@@ -300,6 +309,7 @@ public class GamePanel extends JPanel implements ActionListener {
         if (plane == null) return;
         Rectangle planeRect = new Rectangle(plane.getX(), plane.getY(), 50, 50);
 
+
         handleBulletEnemyCollisions();
         handleEggPlaneCollisions(planeRect);
         handleEnemyPlaneCollisions(planeRect);
@@ -313,6 +323,15 @@ public class GamePanel extends JPanel implements ActionListener {
             Rectangle bRect = new Rectangle(b.getX(), b.getY(), 10, 25);
             boolean hit = false;
 
+            // بررسی بشه !!
+            for (int j = enemies.size() - 1; j >= 0; j--) {
+                Enemy enemy = enemies.get(j);
+                if (b.getX() == enemy.getX() && b.getY() == enemy.getY()) {
+
+                    enemy.takeDamage(1);
+                    hit = true;
+                }
+            }
 
             for (int j = enemies.size() - 1; j >= 0; j--) {
                 Enemy enemy = enemies.get(j);
