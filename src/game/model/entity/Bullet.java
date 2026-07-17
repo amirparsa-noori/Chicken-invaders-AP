@@ -17,9 +17,7 @@ public class Bullet {
     }
 
     public void update() {
-
         y -= speed;
-        x += 3;
     }
 
     public int getX() { return x; }

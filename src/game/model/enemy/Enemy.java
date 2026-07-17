@@ -56,22 +56,25 @@ public abstract class Enemy {
     }
 
     public void updateSpawningMovement() {
-
-        long time = System.currentTimeMillis();
-        // فکر کنم درست شد ؟
-        if (x > 2000) x = 0;
-        if (y < -500) y = 100;
-
         if (isSpawning) {
-            x += (int) (Math.sin(time / 100.0) * 10);
-            y += 5;
-            if (y > gridY) {
-                isSpawning = false;
+            // حرکت به سمت موقعیت خالی شده در شبکه
+            double dx = gridX - flyX;
+            double dy = gridY - flyY;
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 5) {
+                isSpawning = false; // به جایگاهش رسید
+                x = gridX;
                 y = gridY;
+            } else {
+                flyX += (dx / distance) * 6; // سرعت پرواز جایگزین به داخل
+                flyY += (dy / distance) * 6;
+                x = (int) flyX;
+                y = (int) flyY;
             }
         } else {
-
-            x = gridX + (int) (Math.cos(time / 50.0) * 3);
+            // اگر در حال پرواز نیست، موقعیت فیزیکیش همون جایگاهش تو شبکه ‌ست
+            x = gridX;
             y = gridY;
         }
     }

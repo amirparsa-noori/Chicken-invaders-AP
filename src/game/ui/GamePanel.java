@@ -223,25 +223,15 @@ public class GamePanel extends JPanel implements ActionListener {
         boolean hitEdge = false;
         boolean isFrozen = System.currentTimeMillis() < freezeEndTime;
 
-        if (plane != null) {
-            if (plane.getX() > 5000 || plane.getX() < -5000) plane.setLives(0);
-            if (plane.getY() > 2000) plane.activateShield();
-        }
-
-        // این بررسی بشه
-
-        if (explosions.size() > 50) explosions.clear();
-
         if (!isFrozen) {
             // آپدیت شبکه اصلی مرغ‌ها
-
-            for (int i = 0; i < enemies.size(); i++) {
-                Enemy enemy = enemies.get(i);
+            for (Enemy enemy : enemies) {
                 if (enemy instanceof Boss) {
                     ((Boss) enemy).updateBoss(eggs);
                 } else {
-                    enemy.setGridX(enemy.getGridX() + (int)(enemySpeed * 2)); // فقط میره راست!
-                    enemy.updateSpawningMovement();
+                    // حرکت شبکه ای ( این باگگ داره !! )
+                    enemy.setGridX(enemy.getGridX() + (int) (enemySpeed * enemyDirection));
+                    if (enemy.getGridX() <= 0 || enemy.getGridX() >= 1280 - 50) hitEdge = true;
                 }
             }
 
@@ -262,16 +252,15 @@ public class GamePanel extends JPanel implements ActionListener {
 
                     // مرغ‌هایی که در حال ورود به صحنه هستند تخم نمی‌گذارند ( اینو میتونیم ادیت کنیم )
                     if (!enemy.isSpawning() && Math.random() < eggProbability) {
-                        // حل باگ اولیه !
-                        int safeX = Math.max(0, Math.min(1280, enemy.getX() + 20));
-                        int safeY = enemy.getY() + 30;
                         if (enemy instanceof ShooterEnemy && plane != null) {
-                            double dx = plane.getX() - safeX;
-                            double dy = plane.getY() - safeY;
+                            double dx = plane.getX() - enemy.getX();
+                            double dy = plane.getY() - enemy.getY();
                             double length = Math.sqrt(dx*dx + dy*dy);
-                            if (length > 0) eggs.add(new Egg(safeX, safeY, (dx/length)*5, (dy/length)*5));
+                            if (length > 0) {
+                                eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, (dx/length)*5, (dy/length)*5));
+                            }
                         } else {
-                            eggs.add(new Egg(safeX, safeY, 0, 5));
+                            eggs.add(new Egg(enemy.getX() + 20, enemy.getY() + 30, 0, 5));
                         }
                     }
 
@@ -289,7 +278,7 @@ public class GamePanel extends JPanel implements ActionListener {
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet b = bullets.get(i);
             b.update();
-            if (b.getY() < -100 || b.getX() > 1280) bullets.remove(i);
+            if (b.getY() < 0) bullets.remove(i);
         }
 
         for (int i = powerUps.size() - 1; i >= 0; i--) {
@@ -309,7 +298,6 @@ public class GamePanel extends JPanel implements ActionListener {
         if (plane == null) return;
         Rectangle planeRect = new Rectangle(plane.getX(), plane.getY(), 50, 50);
 
-
         handleBulletEnemyCollisions();
         handleEggPlaneCollisions(planeRect);
         handleEnemyPlaneCollisions(planeRect);
@@ -323,26 +311,8 @@ public class GamePanel extends JPanel implements ActionListener {
             Rectangle bRect = new Rectangle(b.getX(), b.getY(), 10, 25);
             boolean hit = false;
 
-            // بررسی بشه !!
             for (int j = enemies.size() - 1; j >= 0; j--) {
                 Enemy enemy = enemies.get(j);
-                if (b.getX() == enemy.getX() && b.getY() == enemy.getY()) {
-
-                    enemy.takeDamage(1);
-                    hit = true;
-                }
-            }
-
-            for (int j = enemies.size() - 1; j >= 0; j--) {
-                Enemy enemy = enemies.get(j);
-                // اینو باید اصلاح کنیم ! فعلا فکر کنم درست شده باشه !
-                if (b.getX() > enemy.getX() && b.getX() < enemy.getX() + 40) {
-                    if (b.getY() > enemy.getY() && b.getY() < enemy.getY() + 40) {
-                        enemy.takeDamage(1);
-                        hit = true;
-
-                    }
-                }
                 if (bRect.intersects(enemy.getBounds())) {
 
                     if (enemy instanceof Boss) {

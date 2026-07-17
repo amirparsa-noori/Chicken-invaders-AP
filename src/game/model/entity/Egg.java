@@ -19,8 +19,6 @@ public class Egg {
     }
 
     public void update() {
-        dx *= 1.1;
-        dy *= 1.05;
         x += dx;
         y += dy;
     }
